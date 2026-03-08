@@ -1,16 +1,16 @@
 /* ConnectHub custom styles - Instagram Style UI */
 :root {
-  --primary-color: #0095f6;
-  --danger-color: #ff2e63;
-  --bg-color: #fafafa;
+  --primary-color: #0ea5e9;
+  --danger-color: #f97373;
+  --bg-color: #e0f2ff;
   --card-bg: #ffffff;
-  --text-primary: #262626;
-  --text-secondary: #8e8e8e;
+  --text-primary: #1f2933;
+  --text-secondary: #6b7280;
 }
 
 body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: var(--bg-color);
+  background: linear-gradient(160deg, #e0f2ff 0%, #f3e8ff 100%);
   color: var(--text-primary);
 }
 
@@ -69,6 +69,35 @@ body {
 
 .profile-thumb:hover {
   border-color: var(--primary-color);
+}
+
+/* Guest avatar placeholders */
+.guest-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  border: 2px solid #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.guest-avatar-lg {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  border: 3px solid #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #374151;
+  font-size: 2rem;
 }
 
 /* Buttons */
