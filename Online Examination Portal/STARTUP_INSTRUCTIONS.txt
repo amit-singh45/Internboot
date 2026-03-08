@@ -1,0 +1,202 @@
+================================================================================
+  ONLINE EXAMINATION PORTAL - STARTUP INSTRUCTIONS
+================================================================================
+
+Welcome! Your Online Examination Portal is ready to use.
+Follow the steps below to get started in just 5 minutes!
+
+================================================================================
+STEP 1: OPEN COMMAND PROMPT / TERMINAL
+================================================================================
+
+Windows:  Press Win+R, type 'cmd', press Enter
+macOS:    Press Cmd+Space, type 'terminal', press Enter
+Linux:    Press Ctrl+Alt+T
+
+================================================================================
+STEP 2: NAVIGATE TO PROJECT DIRECTORY
+================================================================================
+
+Windows Command Prompt:
+  cd "Online Examination Portal"
+
+macOS/Linux Terminal:
+  cd ~/Desktop/"Online Examination Portal"
+
+================================================================================
+STEP 3: ACTIVATE VIRTUAL ENVIRONMENT
+================================================================================
+
+Windows:
+  venv\Scripts\activate
+
+macOS/Linux:
+  source venv/bin/activate
+
+You should see "(venv)" appear at the beginning of your terminal prompt.
+
+================================================================================
+STEP 4: INSTALL DJANGO
+================================================================================
+
+  pip install django
+
+This takes about 30 seconds. Wait for "Successfully installed" message.
+
+================================================================================
+STEP 5: SETUP DATABASE
+================================================================================
+
+  python manage.py migrate
+
+This creates the database and tables. You'll see several "OK" messages.
+
+================================================================================
+STEP 6: CREATE ADMIN ACCOUNT
+================================================================================
+
+  python manage.py createsuperuser
+
+When prompted, enter:
+  Username: admin
+  Email: admin@exam.com
+  Password: Test@1234 (or your own secure password)
+
+Press 'y' to confirm.
+
+================================================================================
+STEP 7: START SERVER
+================================================================================
+
+  python manage.py runserver
+
+You'll see:
+  "Starting development server at http://127.0.0.1:8000/"
+
+Leave this running!
+
+================================================================================
+STEP 8: OPEN IN BROWSER
+================================================================================
+
+Open your browser and go to:
+  http://127.0.0.1:8000/
+
+You should see the exam portal home page!
+
+================================================================================
+FIRST ACTIONS (OPTIONAL BUT RECOMMENDED)
+================================================================================
+
+1. ADMIN PANEL:
+   - Go to: http://127.0.0.1:8000/admin/
+   - Login with username: admin, password: Test@1234
+   - Click "Exams" > "Add Exam"
+   - Create a sample exam
+
+2. REGISTER AS STUDENT:
+   - Go to: http://127.0.0.1:8000/register/
+   - Create a new student account
+   - Fill in username, email, password
+
+3. TAKE A TEST EXAM:
+   - Login as the student
+   - Go to dashboard
+   - Click "Start Exam"
+   - Answer questions
+   - Submit to see results
+
+================================================================================
+IMPORTANT URLS
+================================================================================
+
+Home Page:        http://127.0.0.1:8000/
+Register:         http://127.0.0.1:8000/register/
+Login:            http://127.0.0.1:8000/login/
+Dashboard:        http://127.0.0.1:8000/dashboard/
+Leaderboard:      http://127.0.0.1:8000/leaderboard/
+Admin Panel:      http://127.0.0.1:8000/admin/
+
+================================================================================
+DOCUMENTATION
+================================================================================
+
+For detailed information, read these files:
+
+1. QUICK_START.md        - 5-minute setup guide
+2. README.md             - Complete project documentation
+3. INSTALLATION_GUIDE.md - Detailed setup instructions
+4. FEATURES.md           - All features explained
+5. INDEX.md              - Documentation index
+6. CHECKLIST.md          - Implementation checklist
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Q: "Python not found"
+A: Try: python3 --version
+
+Q: "Django not installed"
+A: Try: pip install -r requirements.txt
+
+Q: "Port 8000 already in use"
+A: Try: python manage.py runserver 8080
+
+Q: "Database locked"
+A: Delete db.sqlite3 and run: python manage.py migrate
+
+Q: Can't see changes
+A: Restart the server (Ctrl+C and run: python manage.py runserver)
+
+================================================================================
+TO STOP THE SERVER
+================================================================================
+
+In the terminal where it's running, press:
+  Ctrl+C
+
+The server will stop. You can restart it anytime with:
+  python manage.py runserver
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. ✓ Get the server running (done above)
+2. ✓ Create sample exam
+3. ✓ Register student account
+4. ✓ Test exam functionality
+5. Create more exams and questions
+6. Add multiple students
+7. Test leaderboard
+8. Read full documentation
+
+================================================================================
+NEED HELP?
+================================================================================
+
+1. Check INSTALLATION_GUIDE.md for detailed help
+2. Check QUICK_START.md for common solutions
+3. Read README.md for complete documentation
+4. Visit: https://docs.djangoproject.com/
+
+================================================================================
+CONGRATULATIONS!
+================================================================================
+
+Your Online Examination Portal is set up and ready to use!
+
+Enjoy testing, and feel free to customize the system as needed.
+
+Questions or issues? Read the documentation files included in this folder.
+
+Happy Exam Taking! 🚀
+
+================================================================================
+For fast setup, you can also run the automated setup script:
+
+Windows:    setup.bat
+Linux/Mac:  chmod +x setup.sh && ./setup.sh
+
+================================================================================

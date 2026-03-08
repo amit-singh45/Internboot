@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <h3 class="mb-4">Notifications</h3>
+    <div class="list-group">
+      {% for n in notifications %}
+      <div class="list-group-item d-flex justify-content-between align-items-start{% if not n.is_read %} bg-light{% endif %}">
+        <div>
+          <h6 class="mb-1">{{ n.sender.username }}</h6>
+          <p class="mb-2">
+            {% if n.notification_type == 'like' %}
+              ❤️ liked your post
+            {% elif n.notification_type == 'comment' %}
+              💬 commented on your post
+            {% elif n.notification_type == 'follow' %}
+              👤 started following you
+            {% endif %}
+          </p>
+          <small class="text-muted">{{ n.created_at|timesince }} ago</small>
+        </div>
+        {% if n.post %}
+        <a href="/post/{{ n.post.id }}/" class="btn btn-sm btn-outline-primary">View</a>
+        {% endif %}
+      </div>
+      {% empty %}
+      <p class="text-center text-muted my-4">No notifications yet</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

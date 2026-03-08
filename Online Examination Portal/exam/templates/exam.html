@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.title }} - Online Examination Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exam-container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .timer-container {
+        position: sticky;
+        top: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 100;
+    }
+    .timer-display {
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    .timer-display.warning {
+        color: #ff6b6b;
+        background-color: #ffe0e0;
+    }
+    .timer-display.danger {
+        color: #fff;
+        background-color: #dc3545;
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    .question-container {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #0d9488;
+    }
+    .question-number {
+        background: #0d9488;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    .question-text {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    .form-check {
+        margin-bottom: 12px;
+        padding: 12px;
+        background: white;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+    .form-check:hover {
+        background: #ccfbf1;
+    }
+    .form-check-input {
+        cursor: pointer;
+    }
+    .form-check-label {
+        cursor: pointer;
+        margin-bottom: 0;
+        flex-grow: 1;
+    }
+    .submit-button {
+        position: sticky;
+        bottom: 0;
+        margin-top: 30px;
+        padding: 20px;
+        background: white;
+        border-top: 2px solid #dee2e6;
+    }
+    .progress-indicator {
+        margin-bottom: 20px;
+    }
+    .exam-info {
+        background: #ccfbf1;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #0d9488;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+    <!-- Exam Header -->
+    <div class="exam-info">
+        <h2 class="mb-0">{{ exam.title }}</h2>
+        <p class="mb-0 mt-2 text-muted">{{ exam.description }}</p>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-container">
+        <div class="timer-display" id="timerDisplay">{{ duration|safe }} sec</div>
+        <small class="d-block text-center text-muted mt-2">
+            <strong>Total Questions:</strong> {{ form.fields|length }}
+        </small>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-indicator">
+        <div class="progress" style="height: 5px;">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Exam Form -->
+    <form method="post" action="{% url 'submit_exam' exam.id %}" id="examForm">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div class="question-container">
+                <div class="question-number">
+                    Question {{ forloop.counter }} of {{ form.fields|length }}
+                </div>
+                <div class="question-text">
+                    {{ field.label }}
+                </div>
+                <div>
+                    {% for radio_button in field %}
+                        <div class="form-check">
+                            {{ radio_button.tag }}
+                            <label class="form-check-label" for="{{ radio_button.id_for_label }}">
+                                {{ radio_button.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if field.errors %}
+                    <div class="alert alert-danger mt-2">
+                        {{ field.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <!-- Submit Button -->
+        <div class="submit-button">
+            <button type="submit" class="btn btn-primary btn-lg btn-custom w-100" id="submitBtn">
+                ✓ Submit Exam
+            </button>
+            <small class="d-block text-center mt-3 text-muted">
+                Your answers will be auto-saved if timer runs out.
+            </small>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Timer functionality
+    const duration = {{ duration|safe }};
+    let timeRemaining = duration;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const progressBar = document.getElementById('progressBar');
+    const examForm = document.getElementById('examForm');
+    const totalQuestions = {{ form.fields|length }};
+
+    function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (hours > 0) {
+            return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        } else {
+            return `${minutes}:${String(secs).padStart(2, '0')}`;
+        }
+    }
+
+    function updateTimer() {
+        timerDisplay.textContent = formatTime(timeRemaining);
+
+        // Update progress bar
+        const progress = ((duration - timeRemaining) / duration) * 100;
+        progressBar.style.width = progress + '%';
+
+        // Change color based on time remaining
+        timerDisplay.classList.remove('warning', 'danger');
+        if (timeRemaining <= 60) {
+            timerDisplay.classList.add('danger');
+        } else if (timeRemaining <= 300) {
+            timerDisplay.classList.add('warning');
+        }
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            timerDisplay.textContent = 'Time Up!';
+            timerDisplay.classList.add('danger');
+            submitForm();
+        }
+
+        timeRemaining--;
+    }
+
+    function submitForm() {
+        // Auto-select first option for unanswered questions to ensure valid submission
+        const inputs = document.querySelectorAll('input[type="radio"]');
+        const answeredQuestions = new Set();
+        
+        inputs.forEach(input => {
+            if (input.checked) {
+                answeredQuestions.add(input.name);
+            }
+        });
+
+        inputs.forEach(input => {
+            if (!answeredQuestions.has(input.name)) {
+                // Check first option as default
+                const fieldInputs = document.querySelectorAll(`input[name="${input.name}"]`);
+                if (fieldInputs.length > 0) {
+                    fieldInputs[0].checked = true;
+                    answeredQuestions.add(input.name);
+                }
+                break;
+            }
+        });
+
+        examForm.submit();
+    }
+
+    // Start timer
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    // Prevent accidental form submission
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+        if (confirm('Are you sure you want to submit the exam?')) {
+            return true;
+        }
+        e.preventDefault();
+        return false;
+    });
+
+    // Show warning when leaving page with timer active
+    window.addEventListener('beforeunload', function(e) {
+        if (timeRemaining > 0) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+</script>
+{% endblock %}

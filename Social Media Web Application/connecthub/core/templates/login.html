@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4 mx-auto">
+    <div class="card p-3">
+      <h5>Login</h5>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary">Login</button>
+      </form>
+      <p class="mt-2 small text-muted">Built by Amit Kumar</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

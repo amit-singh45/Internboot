@@ -1,0 +1,732 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Chat - ChatSphere{% endblock %}
+
+{% block content %}
+<div class="glass-card chat-container fade-in mt-2 mb-4">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+        <div class="p-3 border-bottom border-secondary">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold gradient-text">Chats</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-success rounded-circle me-1 glow-hover" data-bs-toggle="modal"
+                        data-bs-target="#newContactModal" title="New Contact">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                            <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                            <path fill-rule="evenodd"
+                                d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z" />
+                        </svg>
+                    </button>
+                    <button class="btn btn-sm btn-outline-cyan rounded-circle glow-hover" data-bs-toggle="modal"
+                        data-bs-target="#createGroupModal" title="New Group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-people-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                        </svg>+
+                    </button>
+                    <button class="btn btn-sm btn-outline-light rounded-circle ms-1 glow-hover" data-bs-toggle="modal"
+                        data-bs-target="#profileModal" title="Profile">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-person-fill" viewBox="0 0 16 16">
+                            <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stories Ring -->
+            <div class="d-flex overflow-auto mt-3 pb-2 custom-scrollbar" style="white-space: nowrap;">
+                <!-- Add Story Item -->
+                <div class="story-item text-center me-3" style="cursor: pointer;" title="Add Story"
+                    onclick="document.getElementById('storyUploadInput').click()">
+                    <div class="avatar mx-auto border border-2 border-secondary d-flex align-items-center justify-content-center text-secondary position-relative"
+                        style="width:50px; height:50px; font-size:24px;">
+                        {% if request.user.profile.avatar %}
+                        <img src="{{ request.user.profile.avatar.url }}"
+                            style="width:100%; height:100%; border-radius:50%; object-fit:cover; opacity: 0.5;">
+                        {% endif %}
+                        <span class="position-absolute fs-3 text-light">+</span>
+                    </div>
+                </div>
+                <input type="file" id="storyUploadInput" class="d-none" accept="image/*">
+
+                {% for story in stories %}
+                <div class="story-item text-center me-3" style="cursor: pointer;" title="View Story"
+                    onclick="openStory('{{ story.image.url }}', '{{ story.user.username }}', '{{ story.created_at|date:'H:i' }}')">
+                    <div class="avatar mx-auto border border-2"
+                        style="width:50px; height:50px; border-color: var(--gradient-purple) !important; padding: 2px;">
+                        {% if story.user.profile.avatar %}
+                        <img src="{{ story.user.profile.avatar.url }}"
+                            style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                        {% else %}
+                        <div
+                            class="d-flex align-items-center justify-content-center bg-secondary rounded-circle w-100 h-100 fs-5 text-light">
+                            {{ story.user.username|make_list|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <small class="d-block text-light mt-1 text-truncate" style="font-size:10px; max-width: 50px;">{{
+                        story.user.username }}</small>
+                </div>
+                {% endfor %}
+            </div>
+
+            <input type="text" class="form-control glass-input mt-2" placeholder="Search chats..." id="searchUsers">
+        </div>
+        <div class="list-group list-group-flush chat-sidebar-users" id="userList">
+            {% for u in users %}
+            <a href="{% url 'chat_user' u.id %}"
+                class="chat-list-item text-decoration-none {% if other_user and other_user.id == u.id %}active{% endif %}">
+                <div class="avatar">
+                    {% if u.profile.avatar %}
+                    <img src="{{ u.profile.avatar.url }}" alt="{{ u.username }}"
+                        style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                    {% else %}
+                    {{ u.username|make_list|first|upper }}
+                    {% endif %}
+                    {% if u.profile.is_online %}
+                    <div class="online-indicator pulse"></div>
+                    {% endif %}
+                </div>
+                <div class="ms-3 flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fw-bold text-light">{{ u.username }}</span>
+                        <!-- optional: last message time -->
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        <!-- Groups Section -->
+        <div class="p-3 border-bottom border-secondary mt-2">
+            <h5 class="mb-0 fw-bold gradient-text">Groups</h5>
+        </div>
+        <div class="list-group list-group-flush chat-sidebar-groups">
+            {% for group in groups %}
+            <a href="{% url 'chat_group' group.id %}"
+                class="chat-list-item text-decoration-none glow-hover {% if active_group and active_group.id == group.id %}active{% endif %}">
+                <div class="avatar bg-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                        class="bi bi-people-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                    </svg>
+                </div>
+                <div class="ms-3 flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fw-bold text-light">{{ group.name }}</span>
+                        <small class="text-muted">{{ group.members.count }} members</small>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-muted text-center mt-3 px-3">No groups available</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main position-relative">
+        {% if chat_type %}
+        <!-- Chat Header -->
+        <div class="p-3 border-bottom border-secondary d-flex align-items-center">
+            {% if chat_type == 'private' %}
+            <div class="avatar">
+                {% if other_user.profile.avatar %}
+                <img src="{{ other_user.profile.avatar.url }}" alt=""
+                    style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                {% else %}
+                {{ other_user.username|make_list|first|upper }}
+                {% endif %}
+                {% if other_user.profile.is_online %}
+                <div class="online-indicator pulse"></div>
+                {% endif %}
+            </div>
+            <div class="ms-3">
+                <h5 class="mb-0 fw-bold text-light">{{ other_user.username }}</h5>
+                <small class="text-cyan">{% if other_user.profile.is_online %}Online{% else %}Offline{% endif %}</small>
+            </div>
+            {% elif chat_type == 'group' %}
+            <div class="avatar bg-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                    class="bi bi-people-fill" viewBox="0 0 16 16">
+                    <path
+                        d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                </svg>
+            </div>
+            <div class="ms-3">
+                <h5 class="mb-0 fw-bold text-light">{{ active_group.name }}</h5>
+                <small class="text-muted">{{ active_group.members.count }} members</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Messages Box -->
+        <div class="message-box" id="messageBox">
+            {% for msg in messages_list %}
+            {% if msg.sender == request.user %}
+            <div class="message sent" data-id="{{ msg.id }}">
+                {% if msg.image %}<img src="{{ msg.image.url }}" class="img-fluid rounded mb-1 d-block"
+                    style="max-height: 200px;">{% endif %}
+                {% if msg.voice_note %}<audio controls src="{{ msg.voice_note.url }}" class="mb-1 d-block"
+                    style="max-height: 40px;"></audio>{% endif %}
+                {% if msg.file %}<a href="{{ msg.file.url }}" target="_blank" class="d-block mb-1 text-info"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-file-earmark-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5.5 1.5v2a1 1 0 0 0 1 1h2l-3-3z" />
+                    </svg> File</a>{% endif %}
+                {{ msg.text }}
+                <span class="message-time">{{ msg.created_at|date:"H:i" }}</span>
+            </div>
+            {% else %}
+            <div class="message received" data-id="{{ msg.id }}">
+                {% if chat_type == 'group' %}
+                <strong class="d-block small text-cyan mb-1">{{ msg.sender.username }}</strong>
+                {% endif %}
+                {% if msg.image %}<img src="{{ msg.image.url }}" class="img-fluid rounded mb-1 d-block"
+                    style="max-height: 200px;">{% endif %}
+                {% if msg.voice_note %}<audio controls src="{{ msg.voice_note.url }}" class="mb-1 d-block"
+                    style="max-height: 40px;"></audio>{% endif %}
+                {% if msg.file %}<a href="{{ msg.file.url }}" target="_blank" class="d-block mb-1 text-info"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-file-earmark-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5.5 1.5v2a1 1 0 0 0 1 1h2l-3-3z" />
+                    </svg> File</a>{% endif %}
+                {{ msg.text }}
+                <span class="message-time">{{ msg.created_at|date:"H:i" }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <button class="send-btn glow-hover" id="emojiBtn">😊</button>
+                <button class="send-btn ms-2 glow-hover" id="attachBtn" title="Attach Media">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                        class="bi bi-paperclip" viewBox="0 0 16 16">
+                        <path
+                            d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z" />
+                    </svg>
+                </button>
+                <input type="file" id="mediaUpload" style="display:none;" accept="image/*,audio/*,.pdf,.doc,.docx,.txt">
+                <input type="text" id="chatInput" class="ms-2" placeholder="Type a message..." autocomplete="off">
+                <button class="send-btn glow-hover" id="sendBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        class="bi bi-send-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Thread info for JS -->
+        {{ chat_id|json_script:"chat-id" }}
+        {{ chat_type|json_script:"chat-type" }}
+        {{ request.user.id|json_script:"user-id" }}
+
+        {% else %}
+        <div class="d-flex flex-column justify-content-center align-items-center h-100 text-center p-5 fade-in">
+            <div class="mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="var(--accent-cyan)"
+                    class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
+                    <path
+                        d="M16 8c0 3.866-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7zM5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                </svg>
+            </div>
+            <h4 class="gradient-text">Welcome to ChatSphere</h4>
+            <p class="text-muted">Select a user from the sidebar to start messaging.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Group Modal -->
+<div class="modal fade" id="createGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title gradient-text">New Group</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createGroupForm">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Group Name</label>
+                        <input type="text" class="form-control glass-input" id="groupName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Add Members (Ctrl+Click)</label>
+                        <select multiple class="form-control glass-input" id="groupMembers" style="height: 120px;">
+                            {% for u in users %}
+                            <option value="{{ u.id }}">{{ u.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary-gradient w-100 mt-2">Create Group</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card">
+            <div class="profile-header">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="profile-avatar-wrapper mb-3">
+                    {% if request.user.profile.avatar %}
+                    <img src="{{ request.user.profile.avatar.url }}" id="profileAvatarPreview">
+                    {% else %}
+                    <div class="placeholder">{{ request.user.username|make_list|first|upper }}</div>
+                    {% endif %}
+                    <label for="avatarInput" class="edit-avatar-btn" title="Change Profile Photo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-camera-fill" viewBox="0 0 16 16">
+                            <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                            <path
+                                d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z" />
+                        </svg>
+                    </label>
+                </div>
+                <h4 class="text-light fw-bold mb-0">{{ request.user.username }}</h4>
+                <small class="text-cyan">{% if request.user.profile.is_online %}Online{% else %}Last seen: {{
+                    request.user.profile.last_seen|date:"H:i M d" }}{% endif %}</small>
+            </div>
+            <div class="modal-body p-0">
+                <form id="profileForm" enctype="multipart/form-data">
+                    <input type="file" id="avatarInput" class="d-none" accept="image/*">
+
+                    <div class="profile-info-group">
+                        <span class="profile-info-label">About / Bio</span>
+                        <div class="profile-info-value">
+                            <span id="bioText" class="text-truncate">
+                                {% if request.user.profile.bio %}
+                                {{ request.user.profile.bio }}
+                                {% else %}
+                                Available
+                                {% endif %}
+                            </span>
+                            <i class="bi bi-pencil-fill"
+                                onclick="document.getElementById('bioTextContainer').classList.toggle('d-none')">✏️</i>
+                        </div>
+                        <div id="bioTextContainer" class="d-none mt-2">
+                            <textarea class="form-control glass-input flex-grow-1" id="bioInput" rows="2"
+                                maxlength="255">{{ request.user.profile.bio }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-group">
+                        <span class="profile-info-label">Email Address</span>
+                        <div class="profile-info-value">
+                            <span>{{ request.user.email|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-group">
+                        <span class="profile-info-label">Member Since</span>
+                        <div class="profile-info-value">
+                            <span class="text-muted">{{ request.user.date_joined|date:"F Y" }}</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary rounded-pill w-100"
+                    data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-gradient rounded-pill w-100 mt-2"
+                    onclick="document.getElementById('profileForm').dispatchEvent(new Event('submit'))">Save
+                    Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Story Viewer Modal -->
+<div class="modal fade" id="storyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down" style="max-width: 400px;">
+        <div class="modal-content glass-card border-0" style="background: rgba(0,0,0,0.9); height: 85vh;">
+            <div class="modal-body p-0 position-relative d-flex flex-column h-100">
+                <!-- Progress Bar -->
+                <div class="progress position-absolute top-0 start-0 w-100"
+                    style="height: 3px; z-index: 10; border-radius: 0; background: rgba(255,255,255,0.2);">
+                    <div class="progress-bar bg-light" id="storyProgress" role="progressbar" style="width: 0%;"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+
+                <!-- Story Header Overlay -->
+                <div class="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between align-items-center mt-2"
+                    style="z-index: 10; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);">
+                    <div class="d-flex align-items-center text-light">
+                        <div class="avatar bg-secondary me-2" style="width: 35px; height: 35px;">
+                            <span id="storyAvatarText"
+                                class="d-flex align-items-center justify-content-center h-100"></span>
+                        </div>
+                        <span class="fw-bold" id="storyUsername">Username</span>
+                        <span class="ms-2 text-white-50 small" id="storyTime">12:00</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
+                        onclick="clearInterval(storyInterval)"></button>
+                </div>
+
+                <!-- Story Media -->
+                <img src="" id="storyImage" class="img-fluid w-100 h-100" style="object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Contact Modal -->
+<div class="modal fade" id="newContactModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom border-secondary p-3 pb-2">
+                <h5 class="modal-title fw-bold text-light mb-0">Select Contact</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="p-2 border-bottom border-secondary">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 text-white-50"><i
+                            class="bi bi-search"></i></span>
+                    <input type="text" class="form-control glass-input border-0 shadow-none ps-0 rounded-pill"
+                        placeholder="Search users..." id="searchNewContacts">
+                </div>
+            </div>
+            <div class="modal-body p-0 custom-scrollbar">
+                <div class="list-group list-group-flush" id="newContactList">
+                    {% for u in users %}
+                    <a href="{% url 'chat_user' u.id %}"
+                        class="list-group-item list-group-item-action bg-transparent border-secondary text-light d-flex align-items-center p-3 new-contact-item"
+                        style="transition: background 0.2s;">
+                        <div class="avatar border border-1 border-secondary d-flex align-items-center justify-content-center me-3"
+                            style="width: 45px; height: 45px;">
+                            {% if u.profile.avatar %}
+                            <img src="{{ u.profile.avatar.url }}"
+                                style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                            {% else %}
+                            <span class="fs-5">{{ u.username|make_list|first|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 fw-bold">{{ u.username }}</h6>
+                            <small class="text-white-50 text-truncate d-block" style="max-width: 200px;">
+                                {% if u.profile.bio %}
+                                {{ u.profile.bio }}
+                                {% else %}
+                                Available
+                                {% endif %}
+                            </small>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if chat_type %}
+<script>
+    const chatId = JSON.parse(document.getElementById('chat-id').textContent);
+    const chatType = JSON.parse(document.getElementById('chat-type').textContent);
+    const userId = JSON.parse(document.getElementById('user-id').textContent);
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/chat/' + chatType + '/' + chatId + '/'
+    );
+
+    const messageBox = document.getElementById('messageBox');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    function scrollToBottom() {
+        messageBox.scrollTop = messageBox.scrollHeight;
+    }
+    scrollToBottom();
+
+    let typingTimer;
+    const typingInterval = 1000;
+
+    chatInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            sendBtn.click();
+        } else {
+            // Send typing signal
+            chatSocket.send(JSON.stringify({
+                'action': 'typing',
+                'is_typing': true
+            }));
+
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                chatSocket.send(JSON.stringify({
+                    'action': 'typing',
+                    'is_typing': false
+                }));
+            }, typingInterval);
+        }
+    });
+
+    sendBtn.addEventListener('click', () => {
+        const message = chatInput.value.trim();
+        if (message) {
+            chatSocket.send(JSON.stringify({
+                'action': 'chat_message',
+                'message': message
+            }));
+            chatInput.value = '';
+
+            // Stop typing indicator instantly
+            chatSocket.send(JSON.stringify({
+                'action': 'typing',
+                'is_typing': false
+            }));
+        }
+    });
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        if (data.action === 'chat_message') {
+            const isSender = data.sender_id === userId;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSender ? 'sent' : 'received'}`;
+
+            let messageHTML = '';
+            if (!isSender && chatType === 'group') {
+                messageHTML += `<strong class="d-block small text-cyan mb-1">${data.sender_username}</strong>`;
+            }
+            messageHTML += `${data.message} <span class="message-time">${data.timestamp}</span>`;
+
+            messageDiv.innerHTML = messageHTML;
+
+            // Insert before typing indicator
+            messageBox.insertBefore(messageDiv, typingIndicator);
+            scrollToBottom();
+
+            // Play sound if received
+            if (!isSender) {
+                // Send read receipt
+                chatSocket.send(JSON.stringify({
+                    'action': 'message_seen',
+                    'msg_ids': [data.msg_id]
+                }));
+            }
+        } else if (data.action === 'typing') {
+            if (data.sender_id !== userId) {
+                typingIndicator.style.display = data.is_typing ? 'flex' : 'none';
+                if (data.is_typing) scrollToBottom();
+            }
+        } else if (data.action === 'message_reacted') {
+            const msgEl = document.querySelector(`.message[data-id="${data.msg_id}"]`);
+            if (msgEl) {
+                let reactionBadge = msgEl.querySelector('.reaction-badge');
+                if (!reactionBadge) {
+                    reactionBadge = document.createElement('span');
+                    reactionBadge.className = 'reaction-badge badge bg-dark text-light position-absolute bottom-0 translate-middle-y rounded-pill';
+                    if (msgEl.classList.contains('sent')) {
+                        reactionBadge.style.left = '10px';
+                    } else {
+                        reactionBadge.style.right = '10px';
+                    }
+                    msgEl.appendChild(reactionBadge);
+                }
+                reactionBadge.innerText = data.emoji;
+            }
+        }
+    };
+
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    // Attach Media Support
+    const attachBtn = document.getElementById('attachBtn');
+    const mediaUpload = document.getElementById('mediaUpload');
+
+    attachBtn.addEventListener('click', () => {
+        mediaUpload.click();
+    });
+
+    mediaUpload.addEventListener('change', async function () {
+        if (this.files.length === 0) return;
+        const file = this.files[0];
+        const formData = new FormData();
+        formData.append('chat_type', chatType);
+        formData.append('chat_id', chatId);
+
+        if (file.type.startsWith('image/')) formData.append('image', file);
+        else if (file.type.startsWith('audio/')) formData.append('voice_note', file);
+        else formData.append('file', file);
+
+        attachBtn.disabled = true;
+        try {
+            const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
+            await fetch('/api/upload_media/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+                body: formData
+            });
+        } catch (e) {
+            console.error(e);
+        }
+        attachBtn.disabled = false;
+        this.value = ''; // clear input
+    });
+
+    // Double tap to react
+    let touchtime = 0;
+    messageBox.addEventListener('click', function (e) {
+        const msgEl = e.target.closest('.message');
+        if (!msgEl) return;
+
+        if (touchtime === 0) {
+            touchtime = new Date().getTime();
+        } else {
+            if (((new Date().getTime()) - touchtime) < 800) {
+                // double click occurred
+                const msgId = msgEl.getAttribute('data-id');
+                if (msgId) {
+                    chatSocket.send(JSON.stringify({
+                        'action': 'react_message',
+                        'msg_id': msgId,
+                        'emoji': '❤️'
+                    }));
+                }
+                touchtime = 0;
+            } else {
+                touchtime = new Date().getTime();
+            }
+        }
+    });
+
+    // Modals generic AJAX (Group Create, Profile Edit)
+    document.getElementById('createGroupForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('name', document.getElementById('groupName').value);
+
+        const sel = document.getElementById('groupMembers');
+        const members = Array.from(sel.selectedOptions).map(opt => opt.value);
+        formData.append('members', members.join(','));
+
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
+        const res = await fetch('/api/create_group/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        });
+        if (res.ok) window.location.reload();
+    });
+
+    document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('bio', document.getElementById('bioInput').value);
+        const avatar = document.getElementById('avatarInput').files[0];
+        if (avatar) formData.append('avatar', avatar);
+
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
+        const res = await fetch('/profile/update/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        });
+        if (res.ok) window.location.reload();
+    });
+
+    // Simple search filter for Sidebar
+    document.getElementById('searchUsers')?.addEventListener('keyup', function (e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.chat-sidebar-users .chat-list-item').forEach(item => {
+            const name = item.querySelector('.fw-bold').textContent.toLowerCase();
+            item.style.display = name.includes(term) ? 'flex' : 'none';
+        });
+    });
+
+    // New Contact Modal Search Filter
+    document.getElementById('searchNewContacts')?.addEventListener('keyup', function (e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.new-contact-item').forEach(item => {
+            const name = item.querySelector('.fw-bold').textContent.toLowerCase();
+            item.style.display = name.includes(term) ? 'flex' : 'none';
+        });
+    });
+    // Story Upload Handling
+    document.getElementById('storyUploadInput')?.addEventListener('change', async function () {
+        if (this.files.length === 0) return;
+        const file = this.files[0];
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
+
+        // Setup simple loader effect on the '+' button
+        const addBtn = this.previousElementSibling;
+        const originalHtml = addBtn.innerHTML;
+        addBtn.innerHTML = '<div class="spinner-border spinner-border-sm text-light" role="status"></div>';
+
+        try {
+            const res = await fetch('/api/upload_story/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+                body: formData
+            });
+            if (res.ok) window.location.reload();
+        } catch (e) {
+            console.error(e);
+            addBtn.innerHTML = originalHtml;
+        }
+    });
+
+    // Story Viewing Logic
+    let storyInterval;
+    function openStory(imgUrl, username, time) {
+        document.getElementById('storyImage').src = imgUrl;
+        document.getElementById('storyUsername').innerText = username;
+        document.getElementById('storyTime').innerText = time;
+        document.getElementById('storyAvatarText').innerText = username.charAt(0).toUpperCase();
+
+        const modal = new bootstrap.Modal(document.getElementById('storyModal'));
+        modal.show();
+
+        const progressBar = document.getElementById('storyProgress');
+        let width = 0;
+        clearInterval(storyInterval);
+
+        progressBar.style.width = '0%';
+        // 5 second duration story (Instagram style)
+        storyInterval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(storyInterval);
+                modal.hide();
+            } else {
+                width += 1; // 1% per 50ms = 5000ms total
+                progressBar.style.width = width + '%';
+            }
+        }, 50);
+    }
+</script>
+{% endif %}
+{% endblock %}

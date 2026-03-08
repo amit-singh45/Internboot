@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-12">
+    <h3 class="mb-4">Leaderboard</h3>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">⭐ Most Followers</h5>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for u in top_followed %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="/profile/{{ u.username }}/" style="text-decoration:none; color:inherit;">{{ u.username }}</a>
+          <span class="badge bg-primary">{{ u.followers_count }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No users yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">📝 Most Posts</h5>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for u in top_posts %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="/profile/{{ u.username }}/" style="text-decoration:none; color:inherit;">{{ u.username }}</a>
+          <span class="badge bg-success">{{ u.posts_count }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No posts yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">❤ Most Liked</h5>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for u in top_likes_users %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="/profile/{{ u.username }}/" style="text-decoration:none; color:inherit;">{{ u.username }}</a>
+          <span class="badge bg-danger">{{ u.likes_received }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No data yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
