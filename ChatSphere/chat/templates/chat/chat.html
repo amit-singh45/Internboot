@@ -39,15 +39,11 @@
 
             <!-- Stories Ring -->
             <div class="d-flex overflow-auto mt-3 pb-2 custom-scrollbar" style="white-space: nowrap;">
-                <!-- Add Story Item -->
+                <!-- Add Story Item (uses generic guest avatar behind +) -->
                 <div class="story-item text-center me-3" style="cursor: pointer;" title="Add Story"
                     onclick="document.getElementById('storyUploadInput').click()">
                     <div class="avatar mx-auto border border-2 border-secondary d-flex align-items-center justify-content-center text-secondary position-relative"
                         style="width:50px; height:50px; font-size:24px;">
-                        {% if request.user.profile.avatar %}
-                        <img src="{{ request.user.profile.avatar.url }}"
-                            style="width:100%; height:100%; border-radius:50%; object-fit:cover; opacity: 0.5;">
-                        {% endif %}
                         <span class="position-absolute fs-3 text-light">+</span>
                     </div>
                 </div>
@@ -58,14 +54,9 @@
                     onclick="openStory('{{ story.image.url }}', '{{ story.user.username }}', '{{ story.created_at|date:'H:i' }}')">
                     <div class="avatar mx-auto border border-2"
                         style="width:50px; height:50px; border-color: var(--gradient-purple) !important; padding: 2px;">
-                        {% if story.user.profile.avatar %}
-                        <img src="{{ story.user.profile.avatar.url }}"
-                            style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                        {% else %}
                         <div
                             class="d-flex align-items-center justify-content-center bg-secondary rounded-circle w-100 h-100 fs-5 text-light">
                             {{ story.user.username|make_list|first|upper }}</div>
-                        {% endif %}
                     </div>
                     <small class="d-block text-light mt-1 text-truncate" style="font-size:10px; max-width: 50px;">{{
                         story.user.username }}</small>
@@ -80,12 +71,7 @@
             <a href="{% url 'chat_user' u.id %}"
                 class="chat-list-item text-decoration-none {% if other_user and other_user.id == u.id %}active{% endif %}">
                 <div class="avatar">
-                    {% if u.profile.avatar %}
-                    <img src="{{ u.profile.avatar.url }}" alt="{{ u.username }}"
-                        style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                    {% else %}
                     {{ u.username|make_list|first|upper }}
-                    {% endif %}
                     {% if u.profile.is_online %}
                     <div class="online-indicator pulse"></div>
                     {% endif %}
@@ -134,12 +120,7 @@
         <div class="p-3 border-bottom border-secondary d-flex align-items-center">
             {% if chat_type == 'private' %}
             <div class="avatar">
-                {% if other_user.profile.avatar %}
-                <img src="{{ other_user.profile.avatar.url }}" alt=""
-                    style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                {% else %}
                 {{ other_user.username|make_list|first|upper }}
-                {% endif %}
                 {% if other_user.profile.is_online %}
                 <div class="online-indicator pulse"></div>
                 {% endif %}
@@ -290,11 +271,7 @@
                 <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                     data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="profile-avatar-wrapper mb-3">
-                    {% if request.user.profile.avatar %}
-                    <img src="{{ request.user.profile.avatar.url }}" id="profileAvatarPreview">
-                    {% else %}
                     <div class="placeholder">{{ request.user.username|make_list|first|upper }}</div>
-                    {% endif %}
                     <label for="avatarInput" class="edit-avatar-btn" title="Change Profile Photo">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="bi bi-camera-fill" viewBox="0 0 16 16">
@@ -416,12 +393,7 @@
                         style="transition: background 0.2s;">
                         <div class="avatar border border-1 border-secondary d-flex align-items-center justify-content-center me-3"
                             style="width: 45px; height: 45px;">
-                            {% if u.profile.avatar %}
-                            <img src="{{ u.profile.avatar.url }}"
-                                style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                            {% else %}
                             <span class="fs-5">{{ u.username|make_list|first|upper }}</span>
-                            {% endif %}
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="mb-0 fw-bold">{{ u.username }}</h6>
